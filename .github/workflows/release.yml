@@ -50,9 +50,9 @@
 				{
 					"name": "Publish to NPM",
 					"run": "npm publish",
-					"env": {
-						"NPM_AUTH_TOKEN": "${{ secrets.NPM_TOKEN }}"
-					}
+				"env": {
+					"NPM_TOKEN": "${{ secrets.NPM_TOKEN }}"
+				}
 				}
 			]
 		}
