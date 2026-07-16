@@ -1,0 +1,50 @@
+{
+	"name": "jshutter",
+	"version": "0.1.0",
+	"description": "CLI for automated webpage screenshot capture",
+	"license": "MIT",
+	"type": "module",
+	"homepage": "https://github.com/ariasbruno/jshutter#readme",
+	"bin": {
+		"jshutter": "./dist/cli.js"
+	},
+	"main": "./dist/cli.js",
+	"files": [
+		"dist",
+		"assets",
+		"README.md",
+		"LICENSE",
+		"CHANGELOG.md",
+		"jshutter.schema.json"
+	],
+	"scripts": {
+		"start": "node ./dist/cli.js",
+		"build": "bun build ./src/cli.ts --outfile=./dist/cli.js --target=node --external commander --external playwright",
+		"typecheck": "tsc --noEmit",
+		"prepublishOnly": "bun run build"
+	},
+	"keywords": [
+		"screenshot",
+		"playwright",
+		"node",
+		"cli",
+		"automation",
+		"testing",
+		"ai-friendly"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ariasbruno/jshutter.git"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"dependencies": {
+		"commander": "^15.0.0",
+		"playwright": "^1.61.1"
+	},
+	"devDependencies": {
+		"@types/node": "^20.12.0",
+		"typescript": "^5.0.0"
+	}
+}

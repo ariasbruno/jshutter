@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+		<title>jshutter — Execution Report</title>
+
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@300;400&amp;display=swap"
+			rel="stylesheet"
+		/>
+		<!-- STYLE_INJECT -->
+	</head>
+	<body>
+		<!-- Main Content Canvas -->
+		<div class="container">
+			<!-- Header Area -->
+			<header class="header">
+				<div>
+					<h1 class="header-title">jshutter — Execution Report</h1>
+					<div class="header-subtitle">
+						<span id="config-name"></span>
+						<span class="dot-separator">●</span>
+						<span id="timestamp"></span>
+					</div>
+				</div>
+			</header>
+
+			<!-- Metrics Row (Bento Grid) -->
+			<section class="metrics-grid">
+				<!-- Passed -->
+				<div class="metric-card">
+					<div class="metric-header">
+						<div class="metric-status-dot bg-success"></div>
+						<div class="metric-label">Passed</div>
+					</div>
+					<div class="metric-value">
+						<span id="metric-passed">0</span>
+						<span id="metric-passed-pct" class="metric-percentage">0%</span>
+					</div>
+				</div>
+				<!-- Failed -->
+				<div class="metric-card">
+					<div class="metric-header">
+						<div class="metric-status-dot bg-error"></div>
+						<div class="metric-label">Failed</div>
+					</div>
+					<div class="metric-value">
+						<span id="metric-failed">0</span>
+						<span id="metric-failed-pct" class="metric-percentage">0%</span>
+					</div>
+				</div>
+				<!-- Skipped -->
+				<div class="metric-card">
+					<div class="metric-header">
+						<div class="metric-status-dot bg-skipped"></div>
+						<div class="metric-label">Skipped</div>
+					</div>
+					<div class="metric-value">
+						<span id="metric-skipped">0</span>
+						<span id="metric-skipped-pct" class="metric-percentage">0%</span>
+					</div>
+				</div>
+				<!-- Duration -->
+				<div class="metric-card">
+					<div class="metric-header">
+						<div class="metric-status-dot bg-info"></div>
+						<div class="metric-label">Total Duration</div>
+					</div>
+					<div id="metric-duration" class="metric-value">0s</div>
+				</div>
+			</section>
+
+			<!-- Filters & Toolbar -->
+			<div class="toolbar">
+				<!-- Search -->
+				<div class="search-wrapper">
+					<div class="search-icon">
+						<!-- ICON_SEARCH -->
+					</div>
+					<input
+						id="search-input"
+						class="search-input"
+						placeholder="Search by task ID or URL..."
+						type="text"
+						oninput="searchTasks()"
+					/>
+				</div>
+				<!-- Tags Checkbox Dropdown -->
+				<div class="dropdown-wrapper" id="tags-dropdown-container">
+					<button
+						type="button"
+						class="dropdown-button"
+						onclick="toggleTagsDropdown(event)"
+					>
+						<span class="dropdown-icon-left">
+							<!-- ICON_TAG -->
+						</span>
+						<span
+							id="tags-dropdown-label"
+							style="
+								overflow: hidden;
+								text-overflow: ellipsis;
+								white-space: nowrap;
+								flex: 1;
+								padding-right: 8px;
+							"
+							>All</span
+						>
+						<span class="dropdown-icon-right">
+							<!-- ICON_ARROW_DOWN -->
+						</span>
+					</button>
+					<div
+						id="tags-dropdown-menu"
+						class="dropdown-menu"
+						onclick="event.stopPropagation()"
+					>
+						<!-- Dynamically generated checkbox items -->
+					</div>
+				</div>
+				<!-- Tabs -->
+				<div class="tabs-container">
+					<button
+						class="tab-button active"
+						data-filter="all"
+						onclick="filterTasks('all')"
+					>
+						All
+					</button>
+					<button
+						class="tab-button"
+						data-filter="passed"
+						onclick="filterTasks('passed')"
+					>
+						Passed
+					</button>
+					<button
+						class="tab-button"
+						data-filter="failed"
+						onclick="filterTasks('failed')"
+					>
+						Failed
+					</button>
+					<button
+						class="tab-button"
+						data-filter="skipped"
+						onclick="filterTasks('skipped')"
+					>
+						Skipped
+					</button>
+				</div>
+			</div>
+
+			<!-- Test Results Grid -->
+			<section class="results-grid" id="results-grid"></section>
+		</div>
+
+		<!-- Image Zoom Modal -->
+		<div id="image-modal" class="modal-overlay">
+			<div
+				class="modal-viewport"
+				id="modal-viewport"
+				onwheel="handleWheel(event)"
+			>
+				<img id="modal-img" class="modal-img" src="" alt="Screenshot" />
+			</div>
+			<!-- UI Floating Controls -->
+			<button class="modal-close-btn" onclick="closeModal()">
+				<!-- ICON_CLOSE -->
+			</button>
+			<button class="modal-nav-btn modal-nav-prev" onclick="prevImage(event)">
+				<!-- ICON_ARROW_LEFT -->
+			</button>
+			<button class="modal-nav-btn modal-nav-next" onclick="nextImage(event)">
+				<!-- ICON_ARROW_RIGHT -->
+			</button>
+
+			<!-- Zoom Controls -->
+			<div class="zoom-panel" onclick="event.stopPropagation()">
+				<button class="zoom-btn" onclick="zoomOut()">&minus;</button>
+				<span id="zoom-percentage" class="zoom-text">100%</span>
+				<button class="zoom-btn" onclick="zoomIn()">&plus;</button>
+				<button class="zoom-restore-btn" onclick="resetZoom()">
+					Reset
+				</button>
+			</div>
+
+			<div id="modal-title" class="modal-title-bar"></div>
+		</div>
+
+		<!-- Task Configuration Modal -->
+		<div
+			id="config-modal"
+			class="config-modal-overlay"
+			onclick="closeConfigModal()"
+		>
+			<div class="config-modal-content" onclick="event.stopPropagation()">
+				<!-- Modal Header -->
+				<div class="config-modal-header">
+					<div>
+						<h3 id="config-modal-task-id" class="config-modal-title">
+							Task Configuration
+						</h3>
+						<p id="config-modal-task-url" class="config-modal-subtitle"></p>
+					</div>
+					<button class="config-modal-close" onclick="closeConfigModal()">
+						<!-- ICON_CLOSE -->
+					</button>
+				</div>
+				<!-- Modal Body -->
+				<div class="config-modal-body">
+					<!-- General Execution Metadata -->
+					<div class="config-row">
+						<span class="config-label">Dimensions (Viewport):</span>
+						<span
+							id="cfg-viewport"
+							class="config-value config-value-mono"
+						></span>
+					</div>
+					<div class="config-row">
+						<span class="config-label">Capture Duration:</span>
+						<span
+							id="cfg-duration"
+							class="config-value config-value-mono"
+						></span>
+					</div>
+					<div class="config-row">
+						<span class="config-label">Color Scheme:</span>
+						<span id="cfg-colorscheme" class="config-value"></span>
+					</div>
+					<div
+						class="config-row"
+						style="flex-direction: column; align-items: flex-start; gap: 4px"
+					>
+						<span class="config-label">User Agent:</span>
+						<span
+							id="cfg-useragent"
+							class="config-value config-value-mono"
+							style="
+								font-size: 11px;
+								word-break: break-all;
+								opacity: 0.8;
+								line-height: 1.4;
+								padding: 6px;
+								background-color: var(--bg-lowest);
+								border-radius: var(--radius-sm);
+								border: 1px solid var(--border-color);
+								width: 100%;
+							"
+						></span>
+					</div>
+
+					<!-- Execution Options -->
+					<div class="config-row">
+						<span class="config-label">Delay:</span>
+						<span id="cfg-delay" class="config-value config-value-mono"></span>
+					</div>
+					<div class="config-row">
+						<span class="config-label">Full Page:</span>
+						<span id="cfg-fullpage" class="config-value"></span>
+					</div>
+					<div class="config-row">
+						<span class="config-label">Image Format:</span>
+						<span id="cfg-format" class="config-value"></span>
+					</div>
+					<div class="config-row">
+						<span class="config-label">Timeout:</span>
+						<span
+							id="cfg-timeout"
+							class="config-value config-value-mono"
+						></span>
+					</div>
+
+					<!-- Tags Section -->
+					<div id="cfg-tags-container">
+						<span class="config-section-title">Tags</span>
+						<div id="cfg-tags" class="config-tags-list"></div>
+					</div>
+					<!-- Actions Steps Section -->
+					<div id="cfg-actions-container">
+						<span class="config-section-title">Scheduled Actions</span>
+						<div id="cfg-actions" class="config-actions-list"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- SCRIPT_INJECT -->
+	</body>
+</html>

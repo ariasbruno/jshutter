@@ -1,0 +1,403 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Jshutter Configuration Schema",
+	"description": "Schema for jshutter screenshot automation tool configurations",
+	"type": "object",
+	"properties": {
+		"$schema": {
+			"type": "string",
+			"description": "Path or URL to the Jshutter validation schema"
+		},
+		"global": {
+			"type": "object",
+			"description": "Global default options applied to all tasks unless overridden",
+			"properties": {
+				"baseUrl": {
+					"type": "string",
+					"description": "Base URL resolved against relative task URLs (e.g., 'https://example.com' or 'http://localhost:3000')"
+				},
+				"baseOutputDir": {
+					"type": "string",
+					"description": "Base output directory for saving screenshots and reports"
+				},
+				"viewport": {
+					"$ref": "#/definitions/viewportSingleOrArray"
+				},
+				"fullPage": {
+					"type": "boolean",
+					"description": "Capture the full scrollable page instead of just the active viewport"
+				},
+				"delay": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Delay in milliseconds to wait before capturing the screenshot"
+				},
+				"maxPageHeight": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Maximum page height in pixels for fullPage screenshots (use 0 for unlimited)"
+				},
+				"format": {
+					"type": "string",
+					"enum": [
+						"png",
+						"jpeg"
+					],
+					"description": "Screenshot image format"
+				},
+				"quality": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"description": "Image quality (only applicable to jpeg format)"
+				},
+				"timeout": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Playwright action and navigation timeout limit in milliseconds"
+				},
+				"userAgent": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Custom User-Agent header string to use in the browser"
+				},
+				"colorScheme": {
+					"type": "string",
+					"enum": [
+						"light",
+						"dark",
+						"no-preference"
+					],
+					"description": "Emulate color scheme media preferences (light/dark mode)"
+				},
+				"report": {
+					"type": "string",
+					"enum": [
+						"json",
+						"html",
+						"all",
+						"none"
+					],
+					"description": "Type of test execution report to generate"
+				},
+				"embedBase64": {
+					"type": "boolean",
+					"description": "If true, screenshots are embedded inside the HTML report as Base64. If false, relative image path links are used instead"
+				},
+				"headed": {
+					"type": "boolean",
+					"description": "Run the browser in headed mode (shows visible browser window)"
+				},
+				"parallel": {
+					"type": "integer",
+					"minimum": 1,
+					"description": "Max number of browser tasks to execute concurrently"
+				},
+				"saveStorageState": {
+					"type": "string",
+					"description": "Global default path to save Playwright BrowserContext authentication state"
+				},
+				"storageState": {
+					"type": "string",
+					"description": "Global default path to load Playwright BrowserContext authentication state"
+				},
+				"actions": {
+					"type": "array",
+					"description": "Global actions sequence performed on every task page before capturing",
+					"items": {
+						"$ref": "#/definitions/action"
+					}
+				}
+			},
+			"additionalProperties": false
+		},
+		"presets": {
+			"type": "object",
+			"description": "Named viewport dimension presets mapping custom names to width and height",
+			"additionalProperties": {
+				"$ref": "#/definitions/viewportDimensions"
+			}
+		},
+		"macros": {
+			"type": "object",
+			"description": "Re-usable macro names mapping to their custom Javascript script file paths",
+			"additionalProperties": {
+				"type": "string"
+			}
+		},
+		"setupTasks": {
+			"type": "array",
+			"description": "List of setup tasks executed sequentially to prepare storage/login states",
+			"items": {
+				"$ref": "#/definitions/task"
+			}
+		},
+		"tasks": {
+			"type": "array",
+			"description": "List of individual pages/URLs to capture and their task-level overrides",
+			"items": {
+				"$ref": "#/definitions/task"
+			}
+		}
+	},
+	"required": [
+		"tasks"
+	],
+	"definitions": {
+		"task": {
+			"type": "object",
+			"required": [
+				"id",
+				"url",
+				"output"
+			],
+			"properties": {
+				"id": {
+					"type": "string",
+					"description": "Unique identifier for the capture task"
+				},
+				"url": {
+					"type": "string",
+					"description": "The target URL or relative path (resolved against global.baseUrl) to capture"
+				},
+				"output": {
+					"type": "string",
+					"description": "Target file destination path for the screenshot (relative to global.baseOutputDir)"
+				},
+				"viewport": {
+					"$ref": "#/definitions/viewportSingleOrArray"
+				},
+				"fullPage": {
+					"type": "boolean",
+					"description": "Override global.fullPage"
+				},
+				"delay": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Override global.delay"
+				},
+				"maxPageHeight": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Override global.maxPageHeight"
+				},
+				"format": {
+					"type": "string",
+					"enum": [
+						"png",
+						"jpeg"
+					],
+					"description": "Override global.format"
+				},
+				"quality": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"description": "Override global.quality"
+				},
+				"timeout": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Override global.timeout"
+				},
+				"userAgent": {
+					"type": [
+						"string",
+						"null"
+					],
+					"description": "Override global.userAgent"
+				},
+				"colorScheme": {
+					"type": "string",
+					"enum": [
+						"light",
+						"dark",
+						"no-preference"
+					],
+					"description": "Override global.colorScheme"
+				},
+				"tags": {
+					"type": "array",
+					"description": "Category tags for grouping and filtering in the report",
+					"items": {
+						"type": "string"
+					}
+				},
+				"actions": {
+					"type": "array",
+					"description": "Task-specific actions sequence to execute before capturing",
+					"items": {
+						"$ref": "#/definitions/action"
+					}
+				},
+				"saveStorageState": {
+					"type": "string",
+					"description": "File path (relative to configuration folder) to save the Playwright BrowserContext authentication state (cookies & localStorage) after successful task execution"
+				},
+				"storageState": {
+					"type": "string",
+					"description": "File path (relative to configuration folder) to load Playwright BrowserContext authentication state (cookies & localStorage) before task execution starts"
+				}
+			},
+			"additionalProperties": false
+		},
+		"viewportDimensions": {
+			"type": "object",
+			"required": [
+				"width",
+				"height"
+			],
+			"properties": {
+				"width": {
+					"type": "integer",
+					"minimum": 1,
+					"description": "Viewport width in pixels"
+				},
+				"height": {
+					"type": "integer",
+					"minimum": 1,
+					"description": "Viewport height in pixels"
+				}
+			},
+			"additionalProperties": false
+		},
+		"viewportSingleOrArray": {
+			"anyOf": [
+				{
+					"type": "string",
+					"description": "Preset name (e.g. 'desktop', 'mobile') or custom string widthxheight (e.g. '800x600')"
+				},
+				{
+					"$ref": "#/definitions/viewportDimensions"
+				},
+				{
+					"type": "array",
+					"items": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"$ref": "#/definitions/viewportDimensions"
+							}
+						]
+					}
+				}
+			],
+			"description": "Single viewport or array of viewports (can be preset names, resolution strings, or objects)"
+		},
+		"action": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"click",
+						"type",
+						"wait",
+						"wait_selector",
+						"scroll",
+						"hover",
+						"screenshot",
+						"fill_form",
+						"hide",
+						"set_storage",
+						"macro",
+						"navigate",
+						"wait_navigation",
+						"wait_network_idle",
+						"select",
+						"keyboard",
+						"evaluate"
+					],
+					"description": "Action type command"
+				},
+				"selector": {
+					"type": "string",
+					"description": "CSS selector to target elements"
+				},
+				"value": {
+					"anyOf": [
+						{
+							"type": "string"
+						},
+						{
+							"type": "integer"
+						}
+					],
+					"description": "Action value input (e.g., text to write, wait milliseconds, scroll direction/lazy)"
+				},
+				"optional": {
+					"type": "boolean",
+					"description": "If true, click actions will not fail the execution if selector is not found"
+				},
+				"clear": {
+					"type": "boolean",
+					"description": "If true, clears the input field before typing (type action)"
+				},
+				"name": {
+					"type": "string",
+					"description": "Name of macro script file to execute"
+				},
+				"url": {
+					"type": "string",
+					"description": "Target destination URL to navigate to"
+				},
+				"timeout": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "Specific timeout in milliseconds for this action step"
+				},
+				"key": {
+					"type": "string",
+					"description": "Key name for keyboard press or storage key for set_storage"
+				},
+				"storageType": {
+					"type": "string",
+					"enum": [
+						"local",
+						"session"
+					],
+					"description": "Type of storage (localStorage or sessionStorage)"
+				},
+				"fields": {
+					"type": "array",
+					"description": "Form input elements fields array for fill_form action",
+					"items": {
+						"type": "object",
+						"required": [
+							"selector",
+							"value"
+						],
+						"properties": {
+							"selector": {
+								"type": "string"
+							},
+							"value": {
+								"type": "string"
+							},
+							"clear": {
+								"type": "boolean",
+								"description": "If true, clears the field before typing"
+							}
+						},
+						"additionalProperties": false
+					}
+				},
+				"output": {
+					"type": "string",
+					"description": "Custom file path for an intermediate capture screenshot"
+				},
+				"script": {
+					"type": "string",
+					"description": "JavaScript code to execute via page.evaluate()"
+				}
+			}
+		}
+	}
+}
