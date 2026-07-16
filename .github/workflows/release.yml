@@ -48,11 +48,15 @@
 					}
 				},
 				{
+					"name": "Configure NPM",
+					"run": "echo \"//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}\" > ~/.npmrc"
+				},
+				{
 					"name": "Publish to NPM",
 					"run": "npm publish",
-				"env": {
-					"NPM_TOKEN": "${{ secrets.NPM_TOKEN }}"
-				}
+					"env": {
+						"NPM_TOKEN": "${{ secrets.NPM_TOKEN }}"
+					}
 				}
 			]
 		}
