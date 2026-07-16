@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1] - 2025-07-16
+
+### Fixed
+
+- **Skill installer paths**: Corrected relative path from `../../assets/skill/` to `../assets/skill/` so `install-skill` resolves bundled assets correctly from `dist/`
+- **GitHub fallback URL**: Fixed base URL from `assets` to `assets/skill` to match actual repository structure
+
 ## [0.1.0] - 2025-07-15
 
 ### Added

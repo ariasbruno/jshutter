@@ -22,11 +22,11 @@ export async function installSkill(): Promise<void> {
 	try {
 		const bundledSkillPath = path.resolve(
 			import.meta.dirname || "",
-			"../../assets/skill/SKILL.md",
+			"../assets/skill/SKILL.md",
 		);
 		const bundledReferencesDir = path.resolve(
 			import.meta.dirname || "",
-			"../../assets/skill/references",
+			"../assets/skill/references",
 		);
 
 		// Verify bundled SKILL.md exists
@@ -46,7 +46,7 @@ export async function installSkill(): Promise<void> {
 	} catch {
 		// Fallback to download from GitHub repository
 		const githubBaseUrl =
-			"https://raw.githubusercontent.com/ariasbruno/jshutter/main/assets";
+			"https://raw.githubusercontent.com/ariasbruno/jshutter/main/assets/skill";
 		try {
 			console.log(
 				`Local skill not found in package. Attempting to download from GitHub...`,
