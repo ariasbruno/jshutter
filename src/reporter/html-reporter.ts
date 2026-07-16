@@ -2,6 +2,22 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import type { TaskResult, ActionConfig } from "../types";
 
+const GITHUB_REPORT_BASE =
+	"https://raw.githubusercontent.com/ariasbruno/jshutter/main/assets/report";
+
+async function readAsset(templateDir: string, relativePath: string): Promise<string> {
+	const localPath = path.join(templateDir, relativePath);
+	try {
+		return await fs.readFile(localPath, "utf-8");
+	} catch {
+		const response = await fetch(`${GITHUB_REPORT_BASE}/${relativePath}`);
+		if (!response.ok) {
+			throw new Error(`Failed to fetch report asset ${relativePath} (HTTP ${response.status})`);
+		}
+		return response.text();
+	}
+}
+
 function escapeHtml(str: string): string {
 	return str
 		.replace(/&/g, "&amp;")
@@ -25,20 +41,19 @@ export async function generateHtmlReport(
 	let htmlContent = "";
 	let configIcon = "";
 	try {
-		const templateDir = path.resolve(import.meta.dirname || "", "../../assets/report");
-		const htmlTemplate = await fs.readFile(path.join(templateDir, "report.html"), "utf-8");
-		const cssContent = await fs.readFile(path.join(templateDir, "report.css"), "utf-8");
-		const jsContent = await fs.readFile(path.join(templateDir, "report.js"), "utf-8");
+		const templateDir = path.resolve(import.meta.dirname || "", "../assets/report");
+		const htmlTemplate = await readAsset(templateDir, "report.html");
+		const cssContent = await readAsset(templateDir, "report.css");
+		const jsContent = await readAsset(templateDir, "report.js");
 
 		// Load SVGs from icons folder
-		const iconsDir = path.join(templateDir, "icons");
-		const searchIcon = await fs.readFile(path.join(iconsDir, "search.svg"), "utf-8");
-		const tagIcon = await fs.readFile(path.join(iconsDir, "tag.svg"), "utf-8");
-		const arrowDownIcon = await fs.readFile(path.join(iconsDir, "expand.svg"), "utf-8");
-		const closeIcon = await fs.readFile(path.join(iconsDir, "close.svg"), "utf-8");
-		const arrowLeftIcon = await fs.readFile(path.join(iconsDir, "arrow_left.svg"), "utf-8");
-		const arrowRightIcon = await fs.readFile(path.join(iconsDir, "arrow-right.svg"), "utf-8");
-		configIcon = await fs.readFile(path.join(iconsDir, "config.svg"), "utf-8");
+		const searchIcon = await readAsset(templateDir, "icons/search.svg");
+		const tagIcon = await readAsset(templateDir, "icons/tag.svg");
+		const arrowDownIcon = await readAsset(templateDir, "icons/expand.svg");
+		const closeIcon = await readAsset(templateDir, "icons/close.svg");
+		const arrowLeftIcon = await readAsset(templateDir, "icons/arrow_left.svg");
+		const arrowRightIcon = await readAsset(templateDir, "icons/arrow-right.svg");
+		configIcon = await readAsset(templateDir, "icons/config.svg");
 
 		// Merge styles, scripts and SVGs on the fly
 		htmlContent = htmlTemplate

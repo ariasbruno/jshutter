@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2] - 2025-07-16
+
+### Fixed
+
+- **HTML report template path**: Corrected relative path from `../../assets/report` to `../assets/report` so `html-reporter` resolves assets correctly from bundled `dist/cli.js`
+- **HTML report GitHub fallback**: Added automatic download from GitHub repository when local report assets are not found (matching installer pattern)
+
 ## [0.1.1] - 2025-07-16
 
 ### Fixed
