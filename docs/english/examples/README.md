@@ -358,3 +358,88 @@ Uses `set_storage` with `storageType` to inject data that the site's JavaScript 
 
 ### Returned result:
 *   **`screenshots/dashboard/custom.png`**: Capture of the authenticated dashboard (login cookies) with dark theme and collapsed sidebar, injected directly into the browser's storage.
+
+---
+
+## 9. Self-Contained Tasks (Context Isolation Pattern)
+
+Each task is fully self-contained: it dismisses the modal, fetches its own data, injects it into localStorage, and navigates to the target page. No dependency on `setupTasks` for runtime state.
+
+> [!IMPORTANT]
+> **Why repeat actions in each task?** Each task runs in its own isolated browser context. Data set via `evaluate` or `set_storage` in one task does NOT exist in other tasks. Only `saveStorageState`/`storageState` (file-based) persists across contexts.
+
+```jsonc
+{
+	"global": {
+		"baseOutputDir": "./screenshots",
+		"baseUrl": "https://example.com",
+		"viewport": "desktop"
+	},
+	"tasks": [
+		{
+			"id": "home",
+			"url": "/",
+			"output": "store/home.png",
+			"actions": [
+				// Each task dismisses the modal independently
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				{ "type": "navigate", "url": "/" },
+				{ "type": "wait", "value": 500 }
+			]
+		},
+		{
+			"id": "page-empty",
+			"url": "/items",
+			"output": "store/page-empty.png",
+			"actions": [
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				{ "type": "navigate", "url": "/items" },
+				{ "type": "wait", "value": 500 }
+			]
+		},
+		{
+			"id": "page-with-data",
+			"url": "/items",
+			"output": "store/page-data.png",
+			"actions": [
+				// 1. Dismiss modal
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				// 2. Fetch data and inject into localStorage BEFORE navigating
+				{
+					"type": "evaluate",
+					"script": "fetch('/api/items?limit=2').then(r => r.json()).then(data => { localStorage.setItem('app-data', JSON.stringify(data)); location.reload(); })"
+				},
+				{ "type": "wait", "value": 1000 }
+			]
+		},
+		{
+			"id": "page-with-more-data",
+			"url": "/favorites",
+			"output": "store/favorites.png",
+			"actions": [
+				// 1. Dismiss modal
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				// 2. Fetch data and inject into localStorage BEFORE navigating
+				{
+					"type": "evaluate",
+					"script": "fetch('/api/items?limit=4').then(r => r.json()).then(data => { localStorage.setItem('app-data', JSON.stringify(data)); location.reload(); })"
+				},
+				{ "type": "wait", "value": 1000 }
+			]
+		}
+	]
+}
+```
+
+### Key Patterns Demonstrated:
+
+1. **Modal dismissal is repeated** in every task (`localStorage.setItem('modal-dismissed', 'true')` + `navigate` to re-render).
+2. **Data injection happens before navigation** — `evaluate` fetches data, writes to `localStorage`, then `location.reload()` forces the app to read the injected data on mount.
+3. **No `setupTasks`** — each task is independently runnable. You can test any single task with `--task <id>` without needing the others.
+4. **`location.reload()`** is used after `localStorage.setItem` so the SPA reads the injected data during its initial render cycle.
+
+### Returned result:
+*   **`screenshots/store/home.png`**: Homepage without modal overlay.
+*   **`screenshots/store/page-empty.png`**: Items page without injected data.
+*   **`screenshots/store/page-data.png`**: Items page with 2 items injected via API fetch.
+*   **`screenshots/store/favorites.png`**: Favorites page with 4 items injected via API fetch.

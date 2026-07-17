@@ -256,6 +256,8 @@ Es ideal para cualquier preparación que deba ocurrir antes de las capturas: obt
 *	**Cancelación por Error**: Si una de las tareas del bloque `setupTasks` falla, el motor abortará inmediatamente y no ejecutará las tareas en paralelo de `tasks`, previniendo capturas defectuosas.
 *	**Estructura Idéntica**: Cada objeto en `setupTasks` soporta exactamente las mismas propiedades que las tareas normales del bloque `tasks`.
 
+> **Nota sobre aislamiento de contextos**: Cada tarea (tanto en `setupTasks` como en `tasks`) corre en su propio contexto de navegador. Esto significa que el estado en tiempo de ejecución — como variables de `window`, `localStorage`, o cambios en el DOM — no persiste entre tareas. La única forma de compartir estado entre contextos es a través de `saveStorageState`/`storageState` (basado en archivos). Si múltiples tareas necesitan la misma preparación (por ejemplo, cerrar un modal o inyectar datos), repetí esas acciones en cada tarea.
+
 ---
 
 ## 9. Uso de Variables de Entorno (Seguridad)

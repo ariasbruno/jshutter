@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.3] - 2025-07-16
+
+### Fixed
+
+- **AI skill: Context isolation warnings**: Added critical warnings across SKILL.md, schema.md, actions.md, and workflow.md clarifying that each task runs in its own isolated browser context. Data set via `evaluate` or `set_storage` in one task does NOT persist to other tasks. Only `saveStorageState`/`storageState` (file-based) persists across contexts.
+- **AI skill: File location enforcement**: Added mandatory rule to always create `jshutter.json` inside `./jshutter/` directory. Added verification step in workflow to check for existing config before creating.
+- **AI skill: Self-contained task examples**: Added Example 9 demonstrating the correct pattern where each task inlines its own setup actions (dismiss modal, fetch data, inject localStorage).
+- **AI skill: Best practices updated**: Expanded guidance on modal dismissal, context persistence, and self-contained task patterns.
+
+### Added
+
+- **Documentation: Context isolation notes**: Added context isolation explanations to `configuration.md`, `actions.md`, and `README.md` in both English and Spanish.
+- **Documentation: Example 9**: Added "Self-Contained Tasks (Context Isolation Pattern)" to examples documentation (EN/ES) demonstrating independently runnable tasks.
+- **README: Engine lifecycle notes**: Added notes about context isolation in the Engine Lifecycle section (EN/ES).
+
 ## [0.1.2] - 2025-07-16
 
 ### Fixed

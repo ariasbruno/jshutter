@@ -76,12 +76,14 @@ Inyecta un par clave-valor en `localStorage` o `sessionStorage`.
 > [!IMPORTANT]
 > Como las acciones se ejecutan **después** de que la página carga, usá `navigate` después de `set_storage` si la página necesita leer estos datos durante su render inicial.
 
+> Los datos inyectados vía `set_storage` están Scoped al contexto de navegador de la tarea actual. No están disponibles en otras tareas.
+
 #### `evaluate`
 Ejecuta código JavaScript directamente en la página.
 - `script` (string): Código JS a ejecutar vía `page.evaluate()`.
 
 > [!WARNING]
-> Úsese con precaución. El código se ejecuta en el contexto del navegador.
+> Úsese con precaución. El código se ejecuta en el contexto del navegador. Los datos seteados aquí (ej: `window.__data`, `localStorage`) están scoped al contexto de navegador de la tarea actual y no están disponibles en otras tareas.
 
 #### `macro`
 Llama y ejecuta una macro de JavaScript externa registrada en el bloque `macros`.
@@ -93,4 +95,4 @@ Llama y ejecuta una macro de JavaScript externa registrada en el bloque `macros`
 
 -	**Evitar esperas rígidas (`wait`):** En su lugar, prefiere utilizar `wait_selector` o `wait_network_idle` para que la ejecución sea más rápida y robusta frente a variaciones de velocidad de red.
 -	**Cierre de modales y diálogos:** Si hay banners persistentes, usá la acción `hide` con una lista de selectores separados por comas para eliminarlos del viewport antes de tomar la captura de pantalla final.
--	**Persistencia de contexto:** Dado que cada tarea corre en su propia sesión aislada, si necesitás capturar una página interna segura, realizá el flujo de inicio de sesión (`navigate` -> `fill_form` -> `click` -> `wait_navigation`) como las primeras acciones de esa misma tarea.
+-	**Persistencia de contexto:** Dado que cada tarea corre en su propia sesión aislada, si necesitás capturar una página interna segura, realizá el flujo de inicio de sesión (`navigate` -> `fill_form` -> `click` -> `wait_navigation`) como las primeras acciones de esa misma tarea. Si múltiples tareas necesitan la misma preparación (ej: cerrar un modal), repetí esas acciones en cada tarea en lugar de depender de una tarea de setup.

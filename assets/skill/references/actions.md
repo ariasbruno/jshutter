@@ -76,12 +76,15 @@ Injects a key-value pair into `localStorage` or `sessionStorage`.
 > [!IMPORTANT]
 > Since actions run **after** the page loads, use `navigate` after `set_storage` if the page needs to read this data during its initial render.
 
+> [!WARNING]
+> Data persists **only within the current task's browser context**. It is NOT available in other tasks. If other tasks need the same data, repeat the `set_storage` action in each task, or use `saveStorageState`/`storageState` for file-based persistence across contexts.
+
 #### `evaluate`
 Runs JavaScript code directly on the page.
 - `script` (string): JS code to run via `page.evaluate()`.
 
 > [!WARNING]
-> Use with caution. The code runs in the browser context.
+> Use with caution. The code runs in the browser context. Data set here (e.g., `window.__data`, `localStorage.setItem(...)`) is **not available in other tasks** — each task has its own isolated browser context. If other tasks need this data, repeat the `evaluate` action in each task or use `saveStorageState`/`storageState` for file-based persistence.
 
 #### `macro`
 Calls and runs an external JavaScript macro registered in the `macros` block.
@@ -92,5 +95,6 @@ Calls and runs an external JavaScript macro registered in the `macros` block.
 ## Best Practices
 
 - **Avoid rigid waits (`wait`):** Instead, prefer using `wait_selector` or `wait_network_idle` for faster and more robust execution against network speed variations.
-- **Closing modals and dialogs:** If there are persistent banners, use the `hide` action with a comma-separated list of selectors to remove them from the viewport before taking the final screenshot.
-- **Context persistence:** Since each task runs in its own isolated session, if you need to capture a secure internal page, perform the login flow (`navigate` -> `fill_form` -> `click` -> `wait_navigation`) as the first actions of that same task.
+- **Closing modals and dialogs:** If there are persistent banners, use the `hide` action with a comma-separated list of selectors to remove them from the viewport before taking the final screenshot. Alternatively, use `evaluate` to dismiss them via localStorage flags (e.g., `localStorage.setItem('modal-dismissed', 'true')`) followed by `navigate` to re-render.
+- **Context persistence:** Since each task runs in its own isolated session, if you need to capture a secure internal page, perform the login flow (`navigate` -> `fill_form` -> `click` -> `wait_navigation`) as the first actions of that same task. Do not rely on `setupTasks` to share runtime state — only `saveStorageState`/`storageState` persists across contexts.
+- **Self-contained tasks:** When multiple tasks need the same preparation (dismiss modal, inject data), inline the actions into every task. Each task should be independently runnable.

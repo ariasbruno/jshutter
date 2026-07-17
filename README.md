@@ -204,6 +204,8 @@ Execution is divided into two dynamic phases designed to synchronize state witho
 1. **Preparation Phase (`setupTasks`)**: The engine runs this list of tasks **sequentially** (one after another) before starting the main phase. It is ideal for any preparation that must occur before captures: fetching data from the server, generating temporary files, configuring state, or performing a login. If any of these tasks fail, the entire execution is aborted. Use the `saveStorageState` property to save cookies and `localStorage` to a JSON file (e.g., `auth-session.json`) and reuse that session in the main captures.
 2. **Concurrent Capture Phase (`tasks`)**: Once setup is complete, the engine runs the main tasks in parallel. If you configure `storageState` at the `global` level, all tasks will inherit the saved session and start pre-authenticated in independent browser contexts, preventing data collisions.
 
+> **Note**: Since each task runs in an independent browser context, runtime state (e.g., `localStorage`, `window` variables) set in a `setupTask` is not available in `tasks`. Use `saveStorageState`/`storageState` for session persistence, and inline any preparation actions directly into the tasks that need them.
+
 ---
 
 ### Configuration Blocks
@@ -478,6 +480,8 @@ La ejecución se divide en dos fases dinámicas diseñadas para sincronizar el e
 
 1. **Fase de Preparación (`setupTasks`)**: El motor ejecuta esta lista de tareas de forma **secuencial** (una tras otra) antes de iniciar la fase principal. Es ideal para cualquier preparación que deba ocurrir antes de las capturas: obtener datos del servidor, generar archivos temporales, configurar un estado, o realizar un inicio de sesión. Si cualquiera de estas tareas falla, se aborta toda la ejecución. Utilizá la propiedad `saveStorageState` para guardar cookies y `localStorage` en un archivo JSON (ej. `auth-session.json`) y reutilizar esa sesión en las capturas principales.
 2. **Fase de Captura Concurrente (`tasks`)**: Una vez completado el setup, el motor ejecuta las tareas principales en paralelo. Si configurás `storageState` a nivel `global`, todas las tareas heredarán la sesión guardada y comenzarán pre-autenticadas en contextos de navegador independientes, previniendo colisiones de datos.
+
+> **Nota**: Dado que cada tarea corre en un contexto de navegador independiente, el estado en tiempo de ejecución (ej: `localStorage`, variables de `window`) seteado en un `setupTask` no está disponible en `tasks`. Usá `saveStorageState`/`storageState` para persistencia de sesiones, e inliná las acciones de preparación directamente en las tareas que las necesiten.
 
 ---
 

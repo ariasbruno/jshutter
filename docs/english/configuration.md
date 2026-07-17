@@ -255,6 +255,8 @@ It is ideal for any preparation that must occur before captures: fetching data f
 *   **Error Cancellation**: If one of the tasks in the `setupTasks` block fails, the engine will immediately abort and will not execute the parallel tasks in `tasks`, preventing defective captures.
 *   **Identical Structure**: Each object in `setupTasks` supports exactly the same properties as regular tasks in the `tasks` block.
 
+> **Note on context isolation**: Each task (both in `setupTasks` and `tasks`) runs in its own browser context. This means runtime state — such as `window` variables, `localStorage`, or DOM changes — does not persist between tasks. The only way to share state across contexts is through `saveStorageState`/`storageState` (file-based). If multiple tasks need the same preparation (e.g., dismissing a modal or injecting data), repeat those actions in each task.
+
 ---
 
 ## 9. Environment Variables (Security)

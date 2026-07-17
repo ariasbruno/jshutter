@@ -204,7 +204,7 @@ To determine the final value of any optional task property (such as viewport or 
 **jshutter** manages directory and file resolution as follows:
 
 1. **Working Directory (`cwd`)**: The directory from where you run the `jshutter run` command.
-2. **Configuration file location**: The JSON configuration file (located by default at `./jshutter/jshutter.json`) acts as the anchor point for resolving relative paths of macros, output, and captures.
+2. **Configuration file location**: The JSON configuration file (located by default at `./jshutter/jshutter.json`) acts as the anchor point for resolving relative paths of macros, output, and captures. **Always place `jshutter.json` inside a `jshutter/` directory at the project root** — never at the project root or in random locations.
 3. **`baseOutputDir` (Output Directory)**:
    - If defined as a relative path (e.g.: `"baseOutputDir": "./output"`), it is resolved relative to the directory containing the current configuration file.
    - If absolute, it writes directly to that path.
@@ -255,6 +255,71 @@ It is ideal for any preparation that must occur before captures: fetching data f
 *   **Filter Immunity**: Unlike the `tasks` block, preparation tasks **always** execute even if you use the `--task` or `--tag` filtering flags on the command line (to ensure any required state or file is ready).
 *   **Error Cancellation**: If one of the tasks in the `setupTasks` block fails, the engine will immediately abort and will not execute the parallel tasks in `tasks`, preventing defective captures.
 *   **Identical Structure**: Each object in `setupTasks` supports exactly the same properties as regular tasks in the `tasks` block.
+
+### Context Isolation (Critical)
+
+**Each `setupTasks` and `tasks` entry runs in its own isolated Playwright `BrowserContext`.** This means:
+
+- Data set via `evaluate`, `window.__variable`, or DOM manipulation in a `setupTask` is **destroyed** when that task's context closes.
+- `localStorage` or `sessionStorage` written in a `setupTask` does **not** exist in `tasks`.
+- The **only** data that persists across contexts is what is saved to disk via `saveStorageState` and loaded via `storageState` (cookies + serialized localStorage).
+
+| What you do | Persists to `tasks`? |
+|---|---|
+| `window.__data = [...]` in `evaluate` | ❌ No |
+| `localStorage.setItem(...)` in `evaluate` or `set_storage` | ❌ No |
+| DOM changes (clicks, hide, etc.) | ❌ No |
+| `saveStorageState: "file.json"` → cookies + localStorage serialized | ✅ Yes (via `storageState`) |
+| Writing a file to disk (e.g., `fs.writeFile`) | ✅ Yes (file exists on disk) |
+
+### When to use `setupTasks`
+
+Use `setupTasks` **only** for:
+1. **Login flows** that save session via `saveStorageState` (cookies persist through `storageState`).
+2. **Data fetching** that writes results to a file on disk.
+3. **File generation** (e.g., generating temporary assets).
+
+### When NOT to use `setupTasks`
+
+Do **not** use `setupTasks` to:
+- Dismiss modals (use `evaluate` or `hide` directly in each task).
+- Inject `localStorage` data that tasks need (inline `set_storage` or `evaluate` + `navigate` in each task).
+- Set `window.__variables` for other tasks (they won't exist).
+
+### Correct Pattern: Self-Contained Tasks
+
+If multiple tasks need the same runtime state (e.g., dismiss a modal, inject data into localStorage), **inline the actions into every task that needs them**:
+
+```jsonc
+{
+	"tasks": [
+		{
+			"id": "page-with-data",
+			"url": "/page-a",
+			"actions": [
+				// 1. Dismiss modal (each task does this independently)
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				{ "type": "navigate", "url": "/page-a" },
+				// 2. Inject data (each task fetches its own data)
+				{ "type": "evaluate", "script": "fetch('/api/items?limit=2').then(r=>r.json()).then(d=>{localStorage.setItem('app-data', JSON.stringify(d)); location.reload();})" },
+				{ "type": "wait", "value": 1000 }
+			]
+		},
+		{
+			"id": "page-b-with-data",
+			"url": "/page-b",
+			"actions": [
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				{ "type": "navigate", "url": "/page-b" },
+				{ "type": "evaluate", "script": "fetch('/api/items?limit=4').then(r=>r.json()).then(d=>{localStorage.setItem('app-data', JSON.stringify(d)); location.reload();})" },
+				{ "type": "wait", "value": 1000 }
+			]
+		}
+	]
+}
+```
+
+Each task is **self-contained** — it fetches its own data within its own browser context, with no dependency on `setupTasks` or other tasks.
 
 ---
 

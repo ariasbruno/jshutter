@@ -358,3 +358,88 @@ Utiliza `set_storage` con `storageType` para inyectar datos que el JavaScript de
 
 ### Resultado devuelto:
 *	**`screenshots/dashboard/custom.png`**: Captura del dashboard autenticado (cookies del login) con tema oscuro y sidebar colapsado, inyectados directamente en el almacenamiento del navegador.
+
+---
+
+## 9. Tareas Autónomas (Patrón de Aislamiento de Contexto)
+
+Cada tarea es completamente autónoma: descarta el modal, obtiene sus propios datos, los inyecta en localStorage y navega a la página objetivo. No depende de `setupTasks` para el estado en tiempo de ejecución.
+
+> [!IMPORTANT]
+> **¿Por qué repetir acciones en cada tarea?** Cada tarea se ejecuta en su propio contexto aislado del navegador. Los datos establecidos mediante `evaluate` o `set_storage` en una tarea NO existen en otras tareas. Solo `saveStorageState`/`storageState` (basado en archivo) persiste entre contextos.
+
+```jsonc
+{
+	"global": {
+		"baseOutputDir": "./screenshots",
+		"baseUrl": "https://example.com",
+		"viewport": "desktop"
+	},
+	"tasks": [
+		{
+			"id": "home",
+			"url": "/",
+			"output": "store/home.png",
+			"actions": [
+				// Cada tarea descarta el modal de forma independiente
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				{ "type": "navigate", "url": "/" },
+				{ "type": "wait", "value": 500 }
+			]
+		},
+		{
+			"id": "page-empty",
+			"url": "/items",
+			"output": "store/page-empty.png",
+			"actions": [
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				{ "type": "navigate", "url": "/items" },
+				{ "type": "wait", "value": 500 }
+			]
+		},
+		{
+			"id": "page-with-data",
+			"url": "/items",
+			"output": "store/page-data.png",
+			"actions": [
+				// 1. Descarta modal
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				// 2. Obtiene datos e inyecta en localStorage ANTES de navegar
+				{
+					"type": "evaluate",
+					"script": "fetch('/api/items?limit=2').then(r => r.json()).then(data => { localStorage.setItem('app-data', JSON.stringify(data)); location.reload(); })"
+				},
+				{ "type": "wait", "value": 1000 }
+			]
+		},
+		{
+			"id": "page-with-more-data",
+			"url": "/favorites",
+			"output": "store/favorites.png",
+			"actions": [
+				// 1. Descarta modal
+				{ "type": "evaluate", "script": "localStorage.setItem('modal-dismissed', 'true');" },
+				// 2. Obtiene datos e inyecta en localStorage ANTES de navegar
+				{
+					"type": "evaluate",
+					"script": "fetch('/api/items?limit=4').then(r => r.json()).then(data => { localStorage.setItem('app-data', JSON.stringify(data)); location.reload(); })"
+				},
+				{ "type": "wait", "value": 1000 }
+			]
+		}
+	]
+}
+```
+
+### Patrones Clave Demostrados:
+
+1. **El descarte del modal se repite** en cada tarea (`localStorage.setItem('modal-dismissed', 'true')` + `navigate` para re-renderizar).
+2. **La inyección de datos ocurre antes de la navegación** — `evaluate` obtiene datos, escribe en `localStorage`, luego `location.reload()` fuerza a la app a leer los datos inyectados al montar.
+3. **Sin `setupTasks`** — cada tarea es ejecutable de forma independiente. Puedes probar cualquier tarea individual con `--task <id>` sin necesitar las demás.
+4. **`location.reload()`** se usa después de `localStorage.setItem` para que la SPA lea los datos inyectados durante su ciclo de renderizado inicial.
+
+### Resultado devuelto:
+*   **`screenshots/store/home.png`**: Página principal sin overlay de modal.
+*   **`screenshots/store/page-empty.png`**: Página de items sin datos inyectados.
+*   **`screenshots/store/page-data.png`**: Página de items con 2 items inyectados vía fetch API.
+*   **`screenshots/store/favorites.png`**: Página de favoritos con 4 items inyectados vía fetch API.

@@ -76,12 +76,14 @@ Injects a key-value pair into `localStorage` or `sessionStorage`.
 > [!IMPORTANT]
 > Since actions run **after** the page loads, use `navigate` after `set_storage` if the page needs to read this data during its initial render.
 
+> Data set via `set_storage` is scoped to the current task's browser context. It is not available in other tasks.
+
 #### `evaluate`
 Runs JavaScript code directly on the page.
 - `script` (string): JS code to run via `page.evaluate()`.
 
 > [!WARNING]
-> Use with caution. The code runs in the browser context.
+> Use with caution. The code runs in the browser context. Note that data set here (e.g., `window.__data`, `localStorage`) is scoped to the current task's browser context and is not available in other tasks.
 
 #### `macro`
 Calls and runs an external JavaScript macro registered in the `macros` block.
@@ -93,4 +95,4 @@ Calls and runs an external JavaScript macro registered in the `macros` block.
 
 - **Avoid rigid waits (`wait`):** Instead, prefer using `wait_selector` or `wait_network_idle` for faster and more robust execution against network speed variations.
 - **Closing modals and dialogs:** If there are persistent banners, use the `hide` action with a comma-separated list of selectors to remove them from the viewport before taking the final screenshot.
-- **Context persistence:** Since each task runs in its own isolated session, if you need to capture a secure internal page, perform the login flow (`navigate` -> `fill_form` -> `click` -> `wait_navigation`) as the first actions of that same task.
+- **Context persistence:** Since each task runs in its own isolated session, if you need to capture a secure internal page, perform the login flow (`navigate` -> `fill_form` -> `click` -> `wait_navigation`) as the first actions of that same task. If multiple tasks need the same preparation (e.g., dismissing a modal), repeat those actions in each task rather than relying on a setup task.

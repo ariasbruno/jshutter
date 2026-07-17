@@ -22,9 +22,10 @@ Before proposing a configuration, ask the user the following points directly and
 *	**Report (Required Question)**: Ask what type of report to generate (`json`, `html`, `all`, `none`).
 
 ### Phase 2: Configuration (`jshutter.json`)
-*	**Indentation**: Always use **tabs** for indentation in any JSON or code file you generate or edit.
+*	**File Location (MANDATORY)**: Always create `jshutter.json` inside a `jshutter/` directory at the project root: `./jshutter/jshutter.json`. Output files go to `./jshutter/output/`. Never create `jshutter.json` at the project root or in random locations. If `./jshutter/jshutter.json` already exists, edit it instead of creating a new one.
 *	**Schema**: Include the `$schema` key pointing to `"../jshutter.schema.json"` or the official remote URL.
 *	**Sessions and Security**: If you create login tasks (`setupTasks`) that save session to a JSON file (`saveStorageState`), you must **automatically add that JSON file to `.gitignore`** and inform the user in your response.
+*	**Context Isolation (CRITICAL)**: Each `setupTasks` and `tasks` entry runs in its own **isolated browser context**. Data set via `evaluate`, `window.__variable`, or DOM manipulation in a `setupTask` is **NOT available** in `tasks`. Only data saved to files via `saveStorageState`/`storageState` (cookies + serialized localStorage) persists across contexts. When tasks need runtime state (dismiss modals, inject products, set localStorage flags), **inline those actions directly into every task that needs them** — do not rely on `setupTasks` to inject runtime state.
 
 ### Phase 3: Validation and Focused Execution
 *	**Validation**: Always run `npx jshutter validate` before executing.

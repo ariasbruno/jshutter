@@ -1,6 +1,6 @@
 {
 	"name": "jshutter",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"description": "CLI for automated webpage screenshot capture",
 	"license": "MIT",
 	"type": "module",

@@ -39,9 +39,10 @@ Before writing any configuration or running commands, the agent **must ask** con
 Once requirements are aligned with the user:
 
 1. **Generation / Editing**:
-	- Create or modify the `jshutter.json` file using exclusively **tabs** for indentation.
+	- Before creating the config, verify: Does `./jshutter/jshutter.json` already exist? If yes, edit it. If no, create the `jshutter/` directory first, then create the config inside it.
 	- If there are complex JavaScript scripts for interactions, separate them into the macros folder and use them via aliases in the configuration.
 	- **[MANDATORY SECURITY]** If you configure session data saving (`saveStorageState`), you must **automatically add the resulting JSON file path to `.gitignore`** (if not already present) and explicitly inform the user in your response about this addition and its security purpose (preventing accidental leakage of active credentials).
+	- **[MANDATORY CONTEXT CHECK]** Before finalizing, verify: Does any task depend on runtime state (dismissed modals, injected localStorage, `window.__variables`) from `setupTasks` or from other tasks? If yes, **inline those actions into every task that needs them**. Each task runs in its own isolated browser context — only `saveStorageState`/`storageState` (file-based) persists across contexts.
 
 2. **Validation**:
 	- Always run `jshutter validate` before executing. If there are syntax errors, fix them immediately.
