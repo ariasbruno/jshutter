@@ -9,6 +9,10 @@
   <b id="english">English</b> · <a href="#español">Español</a>
 </p>
 
+<p align="center">
+  <img src="preview.gif" alt="jshutter demo" width="700">
+</p>
+
 ---
 
 ## Overview
@@ -287,6 +291,12 @@ This project is under the MIT license. See the [LICENSE](./LICENSE) file for mor
 <p align="center">
   <a href="#english">English</a> · <b id="español">Español</b>
 </p>
+
+<p align="center">
+  <img src="preview.gif" alt="jshutter demo" width="700">
+</p>
+
+---
 
 ## Overview
 
